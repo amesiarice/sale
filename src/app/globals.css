@@ -1,0 +1,41 @@
+@import "tailwindcss";
+
+@theme {
+  --color-gold-50: #fdf6e3;
+  --color-gold-100: #faf7f0;
+  --color-gold-200: #e8dfc8;
+  --color-gold-300: #c8b89a;
+  --color-gold-400: #a88a50;
+  --color-gold-500: #c8922a;
+  --color-gold-600: #b07820;
+  --color-gold-700: #6b4c24;
+  --color-gold-800: #3b2a14;
+  --color-gold-900: #2d1e0a;
+
+  --font-display: Georgia, Cambria, serif;
+  --font-body: "Palatino Linotype", "Book Antiqua", Palatino, serif;
+
+  --animate-fade-in: fadeIn 0.3s ease-in-out;
+  --animate-slide-in: slideIn 0.3s ease-out;
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(-8px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    background-color: var(--color-gold-100);
+    color: var(--color-gold-900);
+    font-family: var(--font-body);
+  }
+}
