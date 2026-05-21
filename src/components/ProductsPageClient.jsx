@@ -9,22 +9,41 @@ import ProductDetail from "@/components/ProductDetail";
 export default function ProductsPageClient() {
   const [skuLines, setSkuLines] = useState([]);
   const [activeSkuId, setActiveSkuId] = useState(null);
-  const [activeVariantId, setActiveVariantId] = useState(null);
+  const [activeVariantId, setActiveVariantId] =
+    useState(null);
+
+  // Main loading
   const [loading, setLoading] = useState(true);
 
-  // Fetch data from Google Sheets API
+  // Variant switching loading
+  const [variantLoading, setVariantLoading] =
+    useState(false);
+
+  // Fetch data from API
   useEffect(() => {
     async function loadData() {
       try {
+        setLoading(true);
+
         const data = await getSkuLines();
 
-        if (Array.isArray(data) && data.length > 0) {
+        if (
+          Array.isArray(data) &&
+          data.length > 0
+        ) {
           setSkuLines(data);
+
           setActiveSkuId(data[0].id);
-          setActiveVariantId(data[0].variants?.[0]?.id || null);
+
+          setActiveVariantId(
+            data[0].variants?.[0]?.id || null
+          );
         }
       } catch (error) {
-        console.error("Failed to load SKU data:", error);
+        console.error(
+          "Failed to load SKU data:",
+          error
+        );
       } finally {
         setLoading(false);
       }
@@ -33,37 +52,66 @@ export default function ProductsPageClient() {
     loadData();
   }, []);
 
-  // Loading State
+  // Initial Skeleton Screen
   if (loading) {
     return (
-      <div className="min-h-[50vh] flex items-center justify-center px-4">
-        <div className="text-center">
-          <div
-            className="w-10 h-10 mx-auto mb-4 rounded-full border-4 border-t-transparent animate-spin"
-            style={{
-              borderColor: "var(--color-gold-400)",
-              borderTopColor: "transparent",
-            }}
-          />
+      <div
+        className="
+          flex
+          flex-col
+          md:flex-row
+          min-h-screen
+          animate-pulse
+        "
+      >
+        {/* Sidebar Skeleton */}
+        <div
+          className="
+            hidden
+            md:flex
+            w-56
+            lg:w-64
+            p-4
+            flex-col
+            gap-3
+          "
+          style={{
+            backgroundColor:
+              "var(--color-gold-800)",
+          }}
+        >
+          <div className="h-4 w-24 rounded bg-white/20" />
 
-          <p
-            className="text-sm sm:text-base"
-            style={{ color: "var(--color-gold-700)" }}
-          >
-            Loading products...
-          </p>
+          {[1, 2, 3, 4, 5].map((item) => (
+            <div
+              key={item}
+              className="h-12 rounded-xl bg-white/10"
+            />
+          ))}
+        </div>
+
+        {/* Mobile Topbar Skeleton */}
+        <div className="md:hidden p-4">
+          <div className="h-10 w-40 rounded-xl bg-gray-200" />
+        </div>
+
+        {/* Product Skeleton */}
+        <div className="flex-1">
+          <ProductDetail loading={true} />
         </div>
       </div>
     );
   }
 
-  // No Data State
+  // No Products
   if (!skuLines.length) {
     return (
       <div className="min-h-[50vh] flex items-center justify-center px-4">
         <p
           className="text-center text-sm sm:text-base"
-          style={{ color: "var(--color-gold-700)" }}
+          style={{
+            color: "var(--color-gold-700)",
+          }}
         >
           No products available.
         </p>
@@ -71,26 +119,50 @@ export default function ProductsPageClient() {
     );
   }
 
-  // Active SKU + Variant
+  // Active SKU
   const activeSku =
-    skuLines.find((s) => s.id === activeSkuId) || skuLines[0];
+    skuLines.find(
+      (s) => s.id === activeSkuId
+    ) || skuLines[0];
 
+  // Active Variant
   const activeVariant =
     activeSku?.variants?.find(
       (v) => v.id === activeVariantId
     ) || activeSku?.variants?.[0];
 
-  // SKU Selection Handler
+  // SKU Change
   const handleSkuSelect = (skuId) => {
-    setActiveSkuId(skuId);
+    setVariantLoading(true);
 
-    const sku = skuLines.find((s) => s.id === skuId);
+    setTimeout(() => {
+      setActiveSkuId(skuId);
 
-    if (sku?.variants?.length) {
-      setActiveVariantId(sku.variants[0].id);
-    } else {
-      setActiveVariantId(null);
-    }
+      const sku = skuLines.find(
+        (s) => s.id === skuId
+      );
+
+      if (sku?.variants?.length) {
+        setActiveVariantId(
+          sku.variants[0].id
+        );
+      } else {
+        setActiveVariantId(null);
+      }
+
+      setVariantLoading(false);
+    }, 250);
+  };
+
+  // Variant Change
+  const handleVariantSelect = (variantId) => {
+    setVariantLoading(true);
+
+    setTimeout(() => {
+      setActiveVariantId(variantId);
+
+      setVariantLoading(false);
+    }, 250);
   };
 
   // Safety Check
@@ -99,7 +171,9 @@ export default function ProductsPageClient() {
       <div className="min-h-[50vh] flex items-center justify-center px-4">
         <p
           className="text-center text-sm sm:text-base"
-          style={{ color: "var(--color-gold-700)" }}
+          style={{
+            color: "var(--color-gold-700)",
+          }}
         >
           Product data is incomplete.
         </p>
@@ -112,10 +186,10 @@ export default function ProductsPageClient() {
       {/* Main Layout */}
       <div
         className="
-          flex 
-          flex-col 
-          md:flex-row 
-          flex-1 
+          flex
+          flex-col
+          md:flex-row
+          flex-1
           min-h-screen
           bg-white
         "
@@ -126,7 +200,9 @@ export default function ProductsPageClient() {
           activeSkuId={activeSkuId}
           activeVariantId={activeVariantId}
           onSkuSelect={handleSkuSelect}
-          onVariantSelect={setActiveVariantId}
+          onVariantSelect={
+            handleVariantSelect
+          }
         />
 
         {/* Product Content */}
@@ -148,7 +224,10 @@ export default function ProductsPageClient() {
               key={activeVariantId}
               skuLine={activeSku}
               variant={activeVariant}
-              onVariantSelect={setActiveVariantId}
+              onVariantSelect={
+                handleVariantSelect
+              }
+              loading={variantLoading}
             />
           </div>
         </main>

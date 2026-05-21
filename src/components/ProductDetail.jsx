@@ -4,7 +4,68 @@ export default function ProductDetail({
   skuLine,
   variant,
   onVariantSelect,
+  loading = false,
 }) {
+  // Skeleton Loader
+  if (loading || !variant) {
+    return (
+      <div className="p-4 sm:p-5 md:p-6 flex flex-col gap-5 animate-pulse">
+        {/* Breadcrumb */}
+        <div className="h-3 w-40 rounded bg-gray-200" />
+
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:justify-between gap-4">
+          <div className="flex-1">
+            <div className="h-8 w-52 rounded bg-gray-200 mb-3" />
+            <div className="h-3 w-36 rounded bg-gray-200" />
+          </div>
+
+          <div className="h-8 w-28 rounded-full bg-gray-200" />
+        </div>
+
+        {/* Spec Cards */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          {[1, 2, 3, 4].map((item) => (
+            <div
+              key={item}
+              className="
+                rounded-xl
+                border
+                p-4
+                min-h-[90px]
+                bg-gray-100
+              "
+            >
+              <div className="h-3 w-16 mx-auto rounded bg-gray-200 mb-3" />
+              <div className="h-5 w-24 mx-auto rounded bg-gray-300" />
+            </div>
+          ))}
+        </div>
+
+        {/* Description */}
+        <div className="rounded-xl bg-gray-100 p-4 space-y-3">
+          <div className="h-3 w-full rounded bg-gray-200" />
+          <div className="h-3 w-[90%] rounded bg-gray-200" />
+          <div className="h-3 w-[80%] rounded bg-gray-200" />
+        </div>
+
+        {/* Variant Buttons */}
+        <div>
+          <div className="h-3 w-32 rounded bg-gray-200 mb-4" />
+
+          <div className="flex flex-wrap gap-2">
+            {[1, 2, 3].map((item) => (
+              <div
+                key={item}
+                className="h-10 w-28 rounded-lg bg-gray-200"
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const specs = [
     { label: "USP", value: variant.grainLength },
     { label: "Packing Type", value: variant.moisture },
@@ -54,6 +115,7 @@ export default function ProductDetail({
             style={{ color: "var(--color-gold-400)" }}
           >
             SKU Code: {variant.skuCode}
+
             <span className="hidden sm:inline">
               {" "}
               &nbsp;|&nbsp; {variant.grade}
@@ -74,7 +136,9 @@ export default function ProductDetail({
             color: variant.inStock ? "#166534" : "#dc2626",
           }}
         >
-          {variant.inStock ? "✓ In Stock" : "✕ Out of Stock"}
+          {variant.inStock
+            ? "✓ In Stock"
+            : "✕ Out of Stock"}
         </span>
       </div>
 
@@ -83,7 +147,17 @@ export default function ProductDetail({
         {specs.map(({ label, value }) => (
           <div
             key={label}
-            className="rounded-lg p-3 sm:p-4 text-center border min-h-[90px] flex flex-col justify-center"
+            className="
+              rounded-lg
+              p-3
+              sm:p-4
+              text-center
+              border
+              min-h-[90px]
+              flex
+              flex-col
+              justify-center
+            "
             style={{
               backgroundColor: "var(--color-gold-100)",
               borderColor: "var(--color-gold-200)",
@@ -91,13 +165,21 @@ export default function ProductDetail({
           >
             <p
               className="text-[10px] sm:text-xs mb-1"
-              style={{ color: "var(--color-gold-400)" }}
+              style={{
+                color: "var(--color-gold-400)",
+              }}
             >
               {label}
             </p>
 
             <p
-              className="text-sm sm:text-base md:text-lg font-semibold break-words"
+              className="
+                text-sm
+                sm:text-base
+                md:text-lg
+                font-semibold
+                break-words
+              "
               style={{
                 fontFamily: "var(--font-display)",
                 color: "var(--color-gold-900)",
@@ -114,12 +196,19 @@ export default function ProductDetail({
         className="px-3 sm:px-4 py-3 rounded-r-md"
         style={{
           backgroundColor: "var(--color-gold-50)",
-          borderLeft: "4px solid var(--color-gold-500)",
+          borderLeft:
+            "4px solid var(--color-gold-500)",
         }}
       >
         <p
-          className="text-sm sm:text-[15px] leading-relaxed"
-          style={{ color: "var(--color-gold-700)" }}
+          className="
+            text-sm
+            sm:text-[15px]
+            leading-relaxed
+          "
+          style={{
+            color: "var(--color-gold-700)",
+          }}
         >
           {variant.description}
         </p>
@@ -128,8 +217,16 @@ export default function ProductDetail({
       {/* Sub-variant switcher */}
       <div>
         <p
-          className="text-[10px] sm:text-[11px] tracking-widest font-semibold mb-3"
-          style={{ color: "var(--color-gold-400)" }}
+          className="
+            text-[10px]
+            sm:text-[11px]
+            tracking-widest
+            font-semibold
+            mb-3
+          "
+          style={{
+            color: "var(--color-gold-400)",
+          }}
         >
           SWITCH SUB-VARIANT
         </p>
@@ -139,16 +236,30 @@ export default function ProductDetail({
             <button
               key={v.id}
               onClick={() => onVariantSelect(v.id)}
-              className="px-3 sm:px-4 py-2 rounded-md text-xs sm:text-sm font-medium transition-all duration-200 break-words max-w-full"
+              className="
+                px-3
+                sm:px-4
+                py-2
+                rounded-md
+                text-xs
+                sm:text-sm
+                font-medium
+                transition-all
+                duration-200
+                break-words
+                max-w-full
+              "
               style={{
                 backgroundColor:
                   v.id === variant.id
                     ? "var(--color-gold-500)"
                     : "var(--color-gold-100)",
+
                 color:
                   v.id === variant.id
                     ? "#fff"
                     : "var(--color-gold-700)",
+
                 border:
                   v.id === variant.id
                     ? "none"
@@ -159,30 +270,6 @@ export default function ProductDetail({
             </button>
           ))}
         </div>
-      </div>
-
-      {/* CTA buttons */}
-      <div className="flex flex-col sm:flex-row gap-3 w-full">
-        {/* Example buttons */}
-
-        {/* 
-        <button
-          className="w-full sm:w-auto text-white text-sm font-semibold px-5 py-3 rounded-md transition-colors"
-          style={{ backgroundColor: "var(--color-gold-500)" }}
-        >
-          📩 Request Quote
-        </button>
-
-        <button
-          className="w-full sm:w-auto text-sm font-semibold px-5 py-3 rounded-md border transition-colors"
-          style={{
-            borderColor: "var(--color-gold-500)",
-            color: "var(--color-gold-500)",
-          }}
-        >
-          📄 Spec Sheet
-        </button>
-        */}
       </div>
     </div>
   );
