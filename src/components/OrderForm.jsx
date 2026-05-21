@@ -1,33 +1,80 @@
 "use client";
 
-import { useState } from "react";
-
-const skuOptions = [
-  "Good Basmati Rice 5kg",
-  "Natural Basmati Rice 10kg",
-  "Premium Basmati Rice 25kg",
-];
+import { useEffect, useState } from "react";
+import { getSkuList } from "@/app/lib/getSkuList";
 
 export default function OrderForm() {
   const [form, setForm] = useState({
     retailerId: "",
-    skuName: skuOptions[0],
+    skuName: "",
     quantity: 1,
     remarks: "",
   });
 
   const [loading, setLoading] = useState(false);
 
+  const [skuList, setSkuList] = useState([]);
+  const [loadingSku, setLoadingSku] = useState(true);
+
+  // Load user from cache/localStorage
+  useEffect(() => {
+  async function loadSession() {
+    try {
+      const res = await fetch("/api/session");
+
+      const data = await res.json();
+
+      if (data.success) {
+        const user = data.user;
+
+        setForm((prev) => ({
+          ...prev,
+          retailerId:
+            user.retailerId ||
+            user.retailerID ||
+            user.id ||
+            "",
+        }));
+      }
+    } catch (error) {
+      console.error("Failed to load session");
+    }
+  }
+
+  loadSession();
+}, []);
+
+  // Load SKU List
+  useEffect(() => {
+    async function loadSkus() {
+      try {
+        const skus = await getSkuList();
+        setSkuList(skus || []);
+      } catch (error) {
+        console.error("Failed to load SKUs");
+      } finally {
+        setLoadingSku(false);
+      }
+    }
+
+    loadSkus();
+  }, []);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
+
     setForm((prev) => ({
       ...prev,
-      [name]: name === "quantity" ? Number(value) : value,
+      [name]:
+        name === "quantity"
+          ? Number(value)
+          : value,
     }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     setLoading(true);
 
     try {
@@ -45,17 +92,20 @@ export default function OrderForm() {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.message || "Failed to submit order");
+        throw new Error(
+          data.message || "Failed to submit order"
+        );
       }
 
       alert("Order submitted successfully!");
 
-      setForm({
-        retailerId: "",
-        skuName: skuOptions[0],
+      // Reset form except retailer ID
+      setForm((prev) => ({
+        retailerId: prev.retailerId,
+        skuName: "",
         quantity: 1,
         remarks: "",
-      });
+      }));
     } catch (error) {
       alert(error.message || "Something went wrong");
     } finally {
@@ -64,41 +114,114 @@ export default function OrderForm() {
   };
 
   return (
-    <div style={{
+    <div
+      style={{
         backgroundColor: "var(--color-gold-50)",
-        borderColor: "var(--color-gold-200)",
       }}
-       className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
-      <div className="w-full max-w-xl bg-white rounded-2xl shadow-lg p-8">
-        <h1 className="text-2xl font-bold mb-6">Order Form</h1>
+      className="
+        min-h-screen
+        flex
+        items-center
+        justify-center
+        p-4
+        sm:p-6
+      "
+    >
+      <div
+        className="
+          w-full
+          max-w-xl
+          bg-white
+          rounded-2xl
+          shadow-lg
+          p-5
+          sm:p-8
+        "
+      >
+        {/* Header */}
+        <div className="mb-6">
+          <h1
+            className="
+              text-2xl
+              sm:text-3xl
+              font-bold
+            "
+            style={{
+              color: "var(--color-gold-700)",
+            }}
+          >
+            Order Form
+          </h1>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
+          <p className="text-sm text-gray-500 mt-1">
+            Submit your retailer order
+          </p>
+        </div>
+
+        <form
+          onSubmit={handleSubmit}
+          className="space-y-5"
+        >
+          {/* Retailer ID */}
           <div>
             <label className="block text-sm font-medium mb-2">
               Retailer ID
             </label>
+
             <input
               type="text"
               name="retailerId"
               value={form.retailerId}
-              onChange={handleChange}
-              required
-              placeholder="Enter Retailer ID"
-              className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              readOnly
+              className="
+                w-full
+                border
+                rounded-xl
+                px-4
+                py-3
+                bg-gray-100
+                text-gray-600
+                cursor-not-allowed
+              "
             />
           </div>
 
+          {/* SKU Name */}
           <div>
             <label className="block text-sm font-medium mb-2">
               SKU Name
             </label>
+
             <select
               name="skuName"
               value={form.skuName}
               onChange={handleChange}
-              className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              required
+              disabled={loadingSku}
+              className="
+                w-full
+                rounded-xl
+                px-4
+                py-3
+                text-sm
+                outline-none
+                border
+                border-gray-300
+                focus:ring-2
+                focus:border-transparent
+              "
+              style={{
+                focusRingColor:
+                  "var(--color-gold-400)",
+              }}
             >
-              {skuOptions.map((sku) => (
+              <option value="">
+                {loadingSku
+                  ? "Loading SKUs..."
+                  : "Select SKU"}
+              </option>
+
+              {skuList.map((sku) => (
                 <option key={sku} value={sku}>
                   {sku}
                 </option>
@@ -106,10 +229,12 @@ export default function OrderForm() {
             </select>
           </div>
 
+          {/* Quantity */}
           <div>
             <label className="block text-sm font-medium mb-2">
               Quantity
             </label>
+
             <input
               type="number"
               name="quantity"
@@ -117,34 +242,69 @@ export default function OrderForm() {
               value={form.quantity}
               onChange={handleChange}
               required
-              className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="
+                w-full
+                border
+                border-gray-300
+                rounded-xl
+                px-4
+                py-3
+                focus:outline-none
+                focus:ring-2
+              "
             />
           </div>
 
+          {/* Remarks */}
           <div>
             <label className="block text-sm font-medium mb-2">
               Remarks
             </label>
+
             <textarea
               name="remarks"
               value={form.remarks}
               onChange={handleChange}
               rows="4"
               placeholder="Optional remarks"
-              className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="
+                w-full
+                border
+                border-gray-300
+                rounded-xl
+                px-4
+                py-3
+                focus:outline-none
+                focus:ring-2
+                resize-none
+              "
             />
           </div>
 
+          {/* Submit Button */}
           <button
-          style={{
-                 backgroundColor: "var(--color-gold-400)",
-                 borderColor: "var(--color-gold-400)",
-           }}
             type="submit"
             disabled={loading}
-            className="w-full bg-green-600 hover:bg-green-700 disabled:opacity-60 text-white py-3 rounded-lg font-semibold"
+            style={{
+              backgroundColor:
+                "var(--color-gold-500)",
+            }}
+            className="
+              w-full
+              text-white
+              py-3
+              rounded-xl
+              font-semibold
+              transition-all
+              duration-300
+              hover:scale-[1.01]
+              active:scale-[0.98]
+              disabled:opacity-60
+            "
           >
-            {loading ? "Submitting..." : "Submit Order"}
+            {loading
+              ? "Submitting..."
+              : "Submit Order"}
           </button>
         </form>
       </div>

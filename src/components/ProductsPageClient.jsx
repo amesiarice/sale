@@ -33,32 +33,54 @@ export default function ProductsPageClient() {
     loadData();
   }, []);
 
-  // Show loading state while data is being fetched
+  // Loading State
   if (loading) {
     return (
-      <div className="p-8 text-center">
-        Loading products...
+      <div className="min-h-[50vh] flex items-center justify-center px-4">
+        <div className="text-center">
+          <div
+            className="w-10 h-10 mx-auto mb-4 rounded-full border-4 border-t-transparent animate-spin"
+            style={{
+              borderColor: "var(--color-gold-400)",
+              borderTopColor: "transparent",
+            }}
+          />
+
+          <p
+            className="text-sm sm:text-base"
+            style={{ color: "var(--color-gold-700)" }}
+          >
+            Loading products...
+          </p>
+        </div>
       </div>
     );
   }
 
-  // If no data found
+  // No Data State
   if (!skuLines.length) {
     return (
-      <div className="p-8 text-center">
-        No products available.
+      <div className="min-h-[50vh] flex items-center justify-center px-4">
+        <p
+          className="text-center text-sm sm:text-base"
+          style={{ color: "var(--color-gold-700)" }}
+        >
+          No products available.
+        </p>
       </div>
     );
   }
 
-  // Find currently selected SKU and Variant
-  const activeSku = skuLines.find((s) => s.id === activeSkuId) || skuLines[0];
+  // Active SKU + Variant
+  const activeSku =
+    skuLines.find((s) => s.id === activeSkuId) || skuLines[0];
 
   const activeVariant =
-    activeSku?.variants?.find((v) => v.id === activeVariantId) ||
-    activeSku?.variants?.[0];
+    activeSku?.variants?.find(
+      (v) => v.id === activeVariantId
+    ) || activeSku?.variants?.[0];
 
-  // Handle SKU selection
+  // SKU Selection Handler
   const handleSkuSelect = (skuId) => {
     setActiveSkuId(skuId);
 
@@ -71,22 +93,34 @@ export default function ProductsPageClient() {
     }
   };
 
-  // Safety check if no variants exist
+  // Safety Check
   if (!activeSku || !activeVariant) {
     return (
-      <div className="p-8 text-center">
-        Product data is incomplete.
+      <div className="min-h-[50vh] flex items-center justify-center px-4">
+        <p
+          className="text-center text-sm sm:text-base"
+          style={{ color: "var(--color-gold-700)" }}
+        >
+          Product data is incomplete.
+        </p>
       </div>
     );
   }
 
   return (
     <>
-      {/* Sidebar + Detail Panel */}
+      {/* Main Layout */}
       <div
-        className="flex flex-1 min-h-0"
-        style={{ minHeight: "420px" }}
+        className="
+          flex 
+          flex-col 
+          md:flex-row 
+          flex-1 
+          min-h-screen
+          bg-white
+        "
       >
+        {/* Sidebar */}
         <Sidebar
           skuLines={skuLines}
           activeSkuId={activeSkuId}
@@ -95,13 +129,28 @@ export default function ProductsPageClient() {
           onVariantSelect={setActiveVariantId}
         />
 
-        <main className="flex-1 overflow-y-auto">
-          <ProductDetail
-            key={activeVariantId}
-            skuLine={activeSku}
-            variant={activeVariant}
-            onVariantSelect={setActiveVariantId}
-          />
+        {/* Product Content */}
+        <main
+          className="
+            flex-1
+            w-full
+            overflow-y-auto
+          "
+        >
+          <div
+            className="
+              max-w-7xl
+              mx-auto
+              w-full
+            "
+          >
+            <ProductDetail
+              key={activeVariantId}
+              skuLine={activeSku}
+              variant={activeVariant}
+              onVariantSelect={setActiveVariantId}
+            />
+          </div>
         </main>
       </div>
 
