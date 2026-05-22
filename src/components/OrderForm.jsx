@@ -8,6 +8,7 @@ export default function OrderForm() {
     retailerId: "",
     skuName: "",
     quantity: 1,
+    rate: "",
     remarks: "",
   });
 
@@ -78,7 +79,7 @@ export default function OrderForm() {
     setLoading(true);
 
     try {
-      const res = await fetch("/api/orders", {
+      const res = await fetch("/api/order", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -104,6 +105,7 @@ export default function OrderForm() {
         retailerId: prev.retailerId,
         skuName: "",
         quantity: 1,
+        rate: "",
         remarks: "",
       }));
     } catch (error) {
@@ -256,6 +258,31 @@ export default function OrderForm() {
           </div>
 
           {/* Remarks */}
+          <div>
+            <label className="block text-sm font-medium mb-2">
+              Rate
+            </label>
+
+            <input
+              name="rate"
+              value={form.rate}
+              onChange={handleChange}
+              type="number"
+              placeholder="Enter rate"
+              className="
+                w-full
+                border
+                border-gray-300
+                rounded-xl
+                px-4
+                py-3
+                focus:outline-none
+                focus:ring-2
+                resize-none
+              "
+            />
+          </div>
+
           <div>
             <label className="block text-sm font-medium mb-2">
               Remarks

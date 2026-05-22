@@ -1,9 +1,4 @@
 // app/api/login/route.js
-// Use this version if your login form sends:
-// {
-//   phone: "8814097213",
-//   password: "1234"
-// }
 
 import { NextResponse } from "next/server";
 
@@ -14,86 +9,117 @@ export async function POST(req) {
   try {
     const { phone, password } = await req.json();
 
-    // Validate input
     if (!phone || !password) {
       return NextResponse.json(
         {
           success: false,
-          message: "Phone number and password are required",
+          message: "Phone and password required",
         },
         { status: 400 }
       );
     }
 
-    // Send login request to Google Apps Script
-    const response = await fetch(APPS_SCRIPT_URL, {
-      method: "POST",
-      redirect: "follow",
-      headers: {
-        "Content-Type": "text/plain;charset=utf-8",
-      },
-      body: JSON.stringify({
-        action: "login",
-        phone: String(phone).trim(),
-        password: String(password).trim(),
-      }),
-      cache: "no-store",
-    });
+    // Timeout controller
+    const controller = new AbortController();
 
-    const text = await response.text();
-    console.log("Apps Script Response:", text);
+    const timeout = setTimeout(() => {
+      controller.abort();
+    }, 15000);
 
-    let result;
+    let response;
+
     try {
-      result = JSON.parse(text);
-    } catch {
+      response = await fetch(APPS_SCRIPT_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "text/plain;charset=utf-8",
+        },
+        body: JSON.stringify({
+          action: "login",
+          phone: String(phone).trim(),
+          password: String(password).trim(),
+        }),
+        signal: controller.signal,
+        cache: "no-store",
+      });
+    } finally {
+      clearTimeout(timeout);
+    }
+
+    // Check response status
+    if (!response.ok) {
       return NextResponse.json(
         {
           success: false,
-          message: "Invalid response from Google Apps Script",
-          raw: text,
+          message: "Apps Script server error",
         },
         { status: 500 }
       );
     }
 
-    // Invalid credentials
+    // Get response safely
+    const text = await response.text();
+
+    if (!text) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Empty response from server",
+        },
+        { status: 500 }
+      );
+    }
+
+    let result;
+
+    try {
+      result = JSON.parse(text);
+    } catch (err) {
+      console.log("Invalid JSON:", text);
+
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Invalid response from Apps Script",
+        },
+        { status: 500 }
+      );
+    }
+
     if (!result.success) {
       return NextResponse.json(
         {
           success: false,
-          message: result.message || "Invalid phone number or password",
+          message: result.message || "Invalid credentials",
         },
         { status: 401 }
       );
     }
 
-    const user = result.user;
-
-    // Create success response
     const res = NextResponse.json({
       success: true,
-      message: "Login successful",
-      user,
+      user: result.user,
     });
 
-    // Store retailer data in secure HTTP-only cookie
-    res.cookies.set("user-session", JSON.stringify(user), {
+    res.cookies.set("user-session", JSON.stringify(result.user), {
       httpOnly: true,
       path: "/",
-      maxAge: 60 * 60 * 24 * 7, // 7 days
+      maxAge: 60 * 60 * 24 * 7,
       sameSite: "lax",
       secure: process.env.NODE_ENV === "production",
     });
 
     return res;
   } catch (error) {
-    console.error("Login API Error:", error);
+    console.error("LOGIN ERROR:", error);
 
     return NextResponse.json(
       {
         success: false,
-        message: error.message,
+        message:
+          error.name === "AbortError"
+            ? "Server timeout"
+            : "Login failed",
       },
       { status: 500 }
     );

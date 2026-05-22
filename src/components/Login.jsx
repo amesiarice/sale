@@ -17,18 +17,25 @@ export default function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (loading) return;
+
     setLoading(true);
 
     try {
       const res = await fetch("/api/login", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify(form),
       });
 
       const data = await res.json();
 
-      if (!res.ok) throw new Error(data.message || "Login failed");
+      if (!res.ok) {
+        throw new Error(data.message || "Login failed");
+      }
 
       router.push("/orderForm");
     } catch (error) {
@@ -65,13 +72,14 @@ export default function Login() {
           />
 
           <button
-          style={{
-                 backgroundColor: "var(--color-gold-400)",
-                 borderColor: "var(--color-gold-400)",
-           }}
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-semibold"
+            style={{
+              backgroundColor: "var(--color-gold-400)",
+              opacity: loading ? 0.7 : 1,
+              cursor: loading ? "not-allowed" : "pointer",
+            }}
+            className="w-full text-white py-3 rounded-lg font-semibold"
           >
             {loading ? "Logging in..." : "Login"}
           </button>
