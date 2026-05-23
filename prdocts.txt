@@ -1,0 +1,211 @@
+/**
+ * Google Apps Script Web App
+ * Returns product data from Google Sheet in the format required by your Next.js UI.
+ *
+ * Sheet columns required:
+ * SKU Name
+ * Series
+ * Primary Category
+ * Pack Size
+ * Packaging Type
+ * USP
+ * Primary Use
+ * Image
+ * Product Type
+ * Channel Category
+ * SKU Status
+ * Push Region (Depot)
+ * Suggested Pitch
+ * WHY CHOOSE THIS PRODUCT?
+ * ABOUT THIS PRODUCT
+ *
+ * Deployment:
+ * 1. Extensions → Apps Script
+ * 2. Paste this entire code into Code.gs
+ * 3. Change SHEET_NAME if needed
+ * 4. Deploy → New deployment → Web app
+ * 5. Execute as: Me
+ * 6. Who has access: Anyone
+ * 7. Copy the Web App URL
+ */
+
+var SHEET_NAME = "SKU_Master_MIS"; // Change this to your actual sheet tab name
+
+/**
+ * Web app entry point
+ */
+function doGet() {
+  try {
+    var rows = getSheetData(SHEET_NAME);
+    var result = transformSheetData(rows);
+
+    return ContentService
+      .createTextOutput(JSON.stringify(result, null, 2))
+      .setMimeType(ContentService.MimeType.JSON);
+  } catch (error) {
+    return ContentService
+      .createTextOutput(
+        JSON.stringify(
+          {
+            success: false,
+            error: error.toString()
+          },
+          null,
+          2
+        )
+      )
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+/**
+ * Reads sheet data and converts it to an array of objects
+ */
+function getSheetData(sheetName) {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
+
+  if (!sheet) {
+    throw new Error("Sheet not found: " + sheetName);
+  }
+
+  var values = sheet.getDataRange().getValues();
+
+  if (values.length < 2) {
+    return [];
+  }
+
+  var headers = values[0];
+  var rows = [];
+
+  for (var i = 1; i < values.length; i++) {
+    var row = {};
+    var isEmpty = true;
+
+    for (var j = 0; j < headers.length; j++) {
+      var value = values[i][j];
+
+      if (value !== "" && value !== null) {
+        isEmpty = false;
+      }
+
+      row[String(headers[j]).trim()] = value;
+    }
+
+    if (!isEmpty) {
+      rows.push(row);
+    }
+  }
+
+  return rows;
+}
+
+/**
+ * Converts sheet rows into grouped structure for your UI
+ */
+function transformSheetData(rows) {
+  var grouped = {};
+
+  rows.forEach(function (row, index) {
+    var seriesName = row["Series"] || "Other";
+
+    // Create series id
+    var seriesId = createSlug(seriesName);
+
+    // Create group if it doesn't exist
+    if (!grouped[seriesId]) {
+      grouped[seriesId] = {
+        id: seriesId,
+        name: seriesName + " SKU",
+        icon: getSeriesIcon(seriesName),
+        variants: []
+      };
+    }
+
+    // Create variant id from SKU Name
+    var variantId = createSlug(row["SKU Name"] || ("sku-" + index));
+
+    // Create description
+    var description = [
+      row["ABOUT THIS PRODUCT"],
+      row["WHY CHOOSE THIS PRODUCT?"],
+      row["Suggested Pitch"]
+    ]
+      .filter(function (item) {
+        return item !== "" && item !== null && item !== undefined;
+      })
+      .join(" ");
+
+    // Add product variant
+    grouped[seriesId].variants.push({
+      id: variantId,
+      name: row["SKU Name"] || "Unnamed SKU",
+      skuCode: variantId.toUpperCase(),
+      grade: row["Primary Category"] || "",
+      grainLength: row["USP"] || "",
+      moisture: row["Packaging Type"] || "",
+      broken: row["Channel Category"] || "",
+      packSizes: row["Pack Size"] || "",
+      description: description,
+      inStock:
+        String(row["SKU Status"] || "")
+          .toLowerCase()
+          .trim() !== "inactive",
+
+      // Additional fields from the sheet
+      series: row["Series"] || "",
+      packagingType: row["Packaging Type"] || "",
+      usp: row["USP"] || "",
+      primaryUse: row["Primary Use"] || "",
+      image: row["Image"] || "",
+      productType: row["Product Type"] || "",
+      channelCategory: row["Channel Category"] || "",
+      skuStatus: row["SKU Status"] || "",
+      pushRegion: row["Push Region (Depot)"] || "",
+      suggestedPitch: row["Suggested Pitch"] || "",
+      whyChoose: row["WHY CHOOSE THIS PRODUCT?"] || "",
+      aboutProduct: row["ABOUT THIS PRODUCT"] || ""
+    });
+  });
+
+  // Convert grouped object to array
+  return Object.keys(grouped).map(function (key) {
+    return grouped[key];
+  });
+}
+
+/**
+ * Converts text into a slug
+ * Example: "SAIFCO Gold Biryani 5kg" => "saifco-gold-biryani-5kg"
+ */
+function createSlug(text) {
+  return String(text || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
+/**
+ * Returns an icon based on the series name
+ */
+function getSeriesIcon(series) {
+  var key = String(series || "").toLowerCase();
+
+  if (key.indexOf("premium") !== -1) return "💎";
+  if (key.indexOf("gold") !== -1) return "✨";
+  if (key.indexOf("silver") !== -1) return "🥈";
+  if (key.indexOf("classic") !== -1) return "🏆";
+  if (key.indexOf("daily") !== -1) return "🌾";
+  if (key.indexOf("rozana") !== -1) return "🍚";
+
+  return "⭐";
+}
+
+/**
+ * Optional test function.
+ * Run manually from Apps Script editor to inspect logs.
+ */
+function test() {
+  var rows = getSheetData(SHEET_NAME);
+  var result = transformSheetData(rows);
+  Logger.log(JSON.stringify(result, null, 2));
+}

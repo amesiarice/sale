@@ -81,7 +81,7 @@ export async function POST(req) {
     res.cookies.set("user-session", JSON.stringify(user), {
       httpOnly: true,
       path: "/",
-      maxAge: 60 * 60 * 24 * 7, // 7 days
+      maxAge: 60 * 60 * 24 * 60, // 60 days
       sameSite: "lax",
       secure: process.env.NODE_ENV === "production",
     });

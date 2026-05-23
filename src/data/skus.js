@@ -193,7 +193,7 @@
 // in the same format as your old `export const skuLines = [...]` structure.
 
 const API_URL =
-  "https://script.google.com/macros/s/AKfycbxwSphV62nmj7V9ZlFXulQU4zIuwQjF3CD6FZfpYssJrykdWFJqKF5HKRSBRPuJwloQ/exec";
+  "https://script.google.com/macros/s/AKfycbwl5SUoVZKyCyGcgalJvVPK2kHEkXz0Y2P9V0DsOBh0QcvHX8dwzbrc1Zd1pk141AcX/exec";
 
 // Optional fallback if API fails
 export const skuLines = [];

@@ -71,6 +71,11 @@ export default function ProductDetail({
     { label: "Packing Type", value: variant.moisture },
     { label: "Primary Use", value: variant.primaryUse },
     { label: "Pack Sizes", value: variant.packSizes },
+    { label: "MRP", value: variant.mrp },
+    { label: "Dealer Price", value: variant.dealerPrice },
+    { label: "MOQ (QTL)", value: variant.moq },
+    { label: "Offer", value: variant.offer || "N/A" },
+    
   ];
 
   return (

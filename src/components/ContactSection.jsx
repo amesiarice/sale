@@ -11,6 +11,7 @@ const contactCards = [
 
 export default function ContactSection() {
   const [form, setForm] = useState({
+    retailerId: "",
     name: "",
     contact: "",
     sku: "",
@@ -59,6 +60,7 @@ export default function ContactSection() {
 
       // Clear form
       setForm({
+        retailerId: form.retailerId, // Keep retailerId
         name: "",
         contact: "",
         sku: "",
@@ -69,6 +71,34 @@ export default function ContactSection() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+  async function loadSession() {
+    try {
+      const res = await fetch("/api/session");
+
+      const data = await res.json();
+
+      if (data.success) {
+        const user = data.user;
+
+        setForm((prev) => ({
+          ...prev,
+          retailerId:
+            user.retailerId ||
+            user.retailerID ||
+            user.id ||
+            "",
+        }));
+        
+      }
+    } catch (error) {
+      console.error("Failed to load session");
+    }
+  }
+
+  loadSession();
+}, []);
 
   return (
     <section
@@ -146,6 +176,23 @@ export default function ContactSection() {
           onSubmit={handleSubmit}
           className="flex flex-col sm:flex-row gap-3"
         >
+            <input
+              type="text"
+              name="retailerId"
+              value={form.retailerId}
+              readOnly
+              className="
+                w-full
+                border
+                rounded-xl
+                px-4
+                py-3
+                bg-gray-100
+                text-gray-600
+                cursor-not-allowed
+              "
+            />
+          
           <input
             type="text"
             placeholder="Your Name"
