@@ -3,6 +3,7 @@
 
 import { useState } from "react";
 import Navlink from "./Navlink"
+import { useCart } from "@/app/context/CartContext";
 
 
 const navlinks = [
@@ -10,11 +11,18 @@ const navlinks = [
   { label: "Products", href: "/products" },
   { label: "Order Form", href: "/orderForm" },
   { label: "Contact", href: "/contact" },
-  // { label: "Login", href: "/login" },
+  { label: "Cart", href: "/cart" },
 ];
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
+
+  const {cartItems} = useCart();
+
+  const totalCartItems = cartItems.reduce(
+  (total, item) => total + item.quantity,
+  0
+);
 
   return (
     <nav
@@ -47,16 +55,47 @@ export default function Navbar() {
 
       {/* Desktop nav */}
       <div className="hidden md:flex items-center gap-6">
-        {navlinks.map(({ label, href }) => (
-          <Navlink
-            key={label}
-            href={href}
-            className="text-sm transition-colors"
-            style={{ color: "var(--color-gold-400)", opacity: label === "Products" ? 1 : 0.6 }}
-          >
-            {label}
-          </Navlink>
-        ))}
+       {navlinks.map(({ label, href }) => (
+  <Navlink
+    key={label}
+    href={href}
+    className="relative text-sm transition-colors"
+    style={{
+      color: "var(--color-gold-400)",
+      opacity: label === "Products" ? 1 : 0.6,
+    }}
+  >
+    <span>{label}</span>
+
+    {/* Cart Count */}
+    {label === "Cart" &&
+      totalCartItems > 0 && (
+        <span
+          className="
+            absolute
+            -top-2
+            -right-4
+            min-w-[20px]
+            h-5
+            px-1
+            rounded-full
+            flex
+            items-center
+            justify-center
+            text-[10px]
+            font-bold
+            text-white
+          "
+          style={{
+            backgroundColor:
+              "var(--color-gold-500)",
+          }}
+        >
+          {totalCartItems}
+        </span>
+      )}
+  </Navlink>
+))}
         {/* <Navlink
           href="/products"
           className="text-white text-xs font-semibold px-4 py-2 rounded-md transition-colors"
@@ -85,16 +124,48 @@ export default function Navbar() {
           }}
         >
           {navlinks.map(({ label, href }) => (
-            <Navlink
-              key={label}
-              href={href}
-              className="text-sm py-2"
-              style={{ color: "var(--color-gold-400)" }}
-              onClick={() => setMenuOpen(false)}
-            >
-              {label}
-            </Navlink>
-          ))}
+  <Navlink
+    key={label}
+    href={href}
+    className="
+      flex
+      items-center
+      justify-between
+      text-sm
+      py-2
+    "
+    style={{
+      color: "var(--color-gold-400)",
+    }}
+    onClick={() => setMenuOpen(false)}
+  >
+    <span>{label}</span>
+
+    {label === "Cart" &&
+      totalCartItems > 0 && (
+        <span
+          className="
+            min-w-[22px]
+            h-5
+            px-1
+            rounded-full
+            flex
+            items-center
+            justify-center
+            text-[10px]
+            font-bold
+            text-white
+          "
+          style={{
+            backgroundColor:
+              "var(--color-gold-500)",
+          }}
+        >
+          {totalCartItems}
+        </span>
+      )}
+  </Navlink>
+))}
           {/* <Navlink
             href="/products"
             className="text-white text-sm font-semibold px-4 py-2 rounded-md mt-2 text-center"

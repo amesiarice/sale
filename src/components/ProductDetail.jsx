@@ -1,11 +1,17 @@
 "use client";
 
+import { useCart } from "@/app/context/CartContext";
+
 export default function ProductDetail({
   skuLine,
   variant,
   onVariantSelect,
   loading = false,
-}) {
+}) 
+
+{
+
+  const { addToCart } = useCart();
   // Skeleton Loader
   if (loading || !variant) {
     return (
@@ -131,6 +137,48 @@ export default function ProductDetail({
             </span>
           </p>
         </div>
+
+        <button
+  onClick={() =>
+    addToCart({
+  id: variant.id,
+  name: variant.name,
+  skuId: variant.skuId,
+  skuCode: variant.skuCode,
+  grade: variant.grade,
+  packSizes: variant.packSizes,
+  mrp: variant.mrp,
+  dealerPrice: variant.dealerPrice,
+  moq: variant.moq,
+  offer: variant.offer,
+  inStock: variant.inStock,
+  grainLength: variant.grainLength,
+  moisture: variant.moisture,
+  primaryUse: variant.primaryUse,
+  description: variant.description,
+  image: variant.image || "",
+})
+  }
+  className="
+    w-full
+    sm:w-auto
+    text-white
+    text-sm
+    font-semibold
+    px-5
+    py-3
+    rounded-xl
+    transition-all
+    duration-300
+    hover:scale-[1.02]
+    active:scale-[0.98]
+  "
+  style={{
+    backgroundColor: "var(--color-gold-500)",
+  }}
+>
+  Add To Cart
+</button>
 
         <span
           className="text-[11px] sm:text-xs font-semibold px-3 py-1.5 rounded-md w-fit shrink-0"
