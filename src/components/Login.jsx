@@ -38,6 +38,8 @@ export default function Login() {
       }
 
       router.push("/");
+      router.refresh();
+router.replace("/");
     } catch (error) {
       alert(error.message);
     } finally {
