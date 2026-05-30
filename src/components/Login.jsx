@@ -37,7 +37,7 @@ export default function Login() {
         throw new Error(data.message || "Login failed");
       }
 
-      router.push("/orderForm");
+      router.push("/");
     } catch (error) {
       alert(error.message);
     } finally {
