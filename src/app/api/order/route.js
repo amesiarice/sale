@@ -5,7 +5,7 @@
 import { NextResponse } from "next/server";
 
 const APPS_SCRIPT_URL =
-  "https://script.google.com/macros/s/AKfycbyjx2y4Jt29Yif0rcIVFa7exik8b9ErvJwVqOi4WJhxWBptphnmBYIeD-FZm9nUjQ-8Dw/exec";
+  "https://script.google.com/macros/s/AKfycbyI4FVJajBVm-569UTLjy0I12kjXKHUF69u_UYEdKVGm-r1cFYo4yL3eKH2qGv7lFCzew/exec";
 
 export async function POST(req) {
   try {

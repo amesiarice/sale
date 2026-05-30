@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useState } from "react";
+
 import {
   ShoppingBag,
   Trash2,
@@ -18,22 +20,108 @@ export default function CartPage() {
     removeFromCart,
     increaseQty,
     decreaseQty,
+    clearCart,
   } = useCart();
 
+  // inside CartPage:
+  const [retailerId, setRetailerId] = useState("");
+
+  const [loading, setLoading] = useState(false);
+
   // Pricing calculations
- const subtotal = cartItems.reduce(
-  (total, item) =>
-    total +
-    Number(item.dealerPrice || 0) *
+  const subtotal = cartItems.reduce(
+    (total, item) =>
+      total +
+      Number(item.dealerPrice || 0) *
       item.quantity,
-  0
-);
+    0
+  );
 
   const discount = subtotal > 5000 ? subtotal * 0.1 : 0;
 
   const shipping = subtotal > 3000 ? 0 : 150;
 
   const total = subtotal - discount + shipping;
+
+  useEffect(() => {
+    async function loadSession() {
+      try {
+        const res = await fetch("/api/session");
+
+        const data = await res.json();
+
+        if (data.success) {
+          const user = data.user;
+
+          setRetailerId(
+            user.retailerId ||
+            user.retailerID ||
+            user.id ||
+            ""
+          );
+        }
+      } catch (error) {
+        console.error("Failed to load session");
+      }
+    }
+
+    loadSession();
+  }, []);
+
+  const handleCheckout = async () => {
+    const orderId = `ORD-${retailerId}-${Date.now()}`;
+    if (!cartItems.length) {
+      alert("Your cart is empty.");
+      return;
+    }
+
+    if (!retailerId) {
+      alert("Retailer ID not found. Please log in again.");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      // const orderSummary = `Subtotal: ₹${subtotal}, Discount: ₹${discount}, Shipping: ${shipping === 0 ? "Free" : `₹${shipping}`}, Total: ₹${total}`;
+
+      for (const item of cartItems) {
+        const res = await fetch("/api/order", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            orderId,
+            retailerId,
+            skuName: item.name,           // or item.skuCode
+            quantity: item.quantity,
+            rate: item.dealerPrice,
+            // remarks: `${orderSummary} | SKU: ${item.skuCode || ""} | Grade: ${item.grade || ""}`,
+            createdAt: new Date().toISOString(),
+            // Optional extras (only if your sheet/script has these columns):
+            // skuId: item.skuId,
+            // skuCode: item.skuCode,
+            // source: "cart",
+          }),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok || data.success === false) {
+          throw new Error(data.message || "Failed to submit order");
+        }
+      }
+
+      alert("Order submitted successfully!");
+
+      // Clear cart — add clearCart to CartContext (see below)
+      clearCart();
+
+    } catch (error) {
+      alert(error.message || "Something went wrong");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div
@@ -291,34 +379,46 @@ export default function CartPage() {
                   Order Summary
                 </h2>
 
-                {/* Coupon */}
-                {/* <div
-                  className="rounded-2xl border p-4 mb-6"
-                  style={{
-                    borderColor:
-                      "var(--color-gold-200)",
-                    backgroundColor:
-                      "var(--color-gold-50)",
-                  }}
-                >
-                  <div className="flex items-center gap-2 mb-2">
-                    <Tag
-                      size={16}
-                      style={{
-                        color:
-                          "var(--color-gold-500)",
-                      }}
-                    />
+                <div className="mb-6">
+                  <label className="block text-sm font-medium mb-2">
+                    Retailer ID
+                  </label>
+                  <input
+                    type="text"
+                    value={retailerId}
+                    readOnly
+                    className="w-full border rounded-xl px-4 py-3 bg-gray-100 text-gray-600 cursor-not-allowed"
+                  />
+                </div>
 
-                    <p className="font-medium text-sm">
-                      Coupon Applied
-                    </p>
-                  </div>
+{/* SKU breakdown */}
+<div className="mb-6 space-y-3">
+  <p className="text-sm font-medium text-gray-700">
+    Items
+  </p>
 
-                  <p className="text-sm text-green-600">
-                    SAVE10 applied successfully.
-                  </p>
-                </div> */}
+  {cartItems.map((item) => (
+    <div
+      key={item.id}
+      className="flex items-start justify-between gap-3 text-sm"
+    >
+      <div className="min-w-0">
+        <p className="font-medium text-gray-800 truncate">
+          {item.name}
+        </p>
+        <p className="text-xs text-gray-500">
+          {item.skuCode || item.skuId || "—"}
+          {item.quantity > 1 && ` · Qty ${item.quantity}`}
+        </p>
+      </div>
+
+      <span className="font-medium shrink-0">
+        ₹{Number(item.dealerPrice || 0)}
+      </span>
+    </div>
+  ))}
+</div>
+                
 
                 {/* Pricing */}
                 <div className="space-y-4 text-sm">
@@ -329,28 +429,6 @@ export default function CartPage() {
 
                     <span className="font-medium">
                       ₹{subtotal}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-500">
-                      Discount
-                    </span>
-
-                    <span className="text-green-600 font-medium">
-                      -₹{discount}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-500">
-                      Shipping
-                    </span>
-
-                    <span className="font-medium">
-                      {shipping === 0
-                        ? "Free"
-                        : `₹${shipping}`}
                     </span>
                   </div>
 
@@ -384,8 +462,12 @@ export default function CartPage() {
                     backgroundColor:
                       "var(--color-gold-500)",
                   }}
+
+                  onClick={handleCheckout}
+                  disabled={loading}
                 >
-                  Proceed To Checkout
+                  {loading ? "Submitting..." : "Proceed To Checkout"}
+
                 </button>
 
                 {/* Features */}

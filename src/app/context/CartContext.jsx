@@ -78,6 +78,9 @@ export function CartProvider({ children }) {
     );
   };
 
+  const clearCart = () => setCartItems([]);
+
+
   // Decrease Quantity
   const decreaseQty = (id) => {
     setCartItems((prev) =>
@@ -102,6 +105,7 @@ export function CartProvider({ children }) {
         removeFromCart,
         increaseQty,
         decreaseQty,
+        clearCart,
       }}
     >
       {children}
