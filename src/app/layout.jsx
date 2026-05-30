@@ -1,5 +1,6 @@
 import "./globals.css";
 import Navbar from "@/components/Navbar";
+import MobileBottomNav from "@/components/MobileBottomNav";
 import Footer from "@/components/Footer";
 import { CartProvider } from "@/app/context/CartContext";
 import { Playfair_Display, DM_Sans } from "next/font/google";
@@ -31,8 +32,11 @@ export default function RootLayout({ children }) {
        <body className="min-h-screen flex flex-col font-[family-name:var(--font-body)]">
         <CartProvider>
           <Navbar />
-        <div className="flex flex-col flex-1">{children}</div>
-        <Footer />
+          <div className="flex flex-col flex-1 pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0">
+            {children}
+          </div>
+          <Footer />
+          <MobileBottomNav />
         </CartProvider>
       </body>
     </html>

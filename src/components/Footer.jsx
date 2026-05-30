@@ -1,7 +1,7 @@
 export default function Footer() {
   return (
     <footer
-      className="px-6 py-4 flex flex-col sm:flex-row justify-between items-center gap-2 border-t"
+      className="px-6 py-4 mb-[calc(4rem+env(safe-area-inset-bottom))] md:mb-0 flex flex-col sm:flex-row justify-between items-center gap-2 border-t"
       style={{
         backgroundColor: "var(--color-gold-900)",
         borderColor: "var(--color-gold-800)",
