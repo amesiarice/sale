@@ -1,10 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+
+function getRedirectPath() {
+  const params = new URLSearchParams(window.location.search);
+  const next = params.get("callbackUrl") || "/";
+  return next.startsWith("/") && !next.startsWith("//") ? next : "/";
+}
 
 export default function Login() {
-  const router = useRouter();
   const [form, setForm] = useState({
     phone: "",
     password: "",
@@ -37,12 +41,9 @@ export default function Login() {
         throw new Error(data.message || "Login failed");
       }
 
-      router.push("/");
-      router.refresh();
-router.replace("/");
+      window.location.assign(getRedirectPath());
     } catch (error) {
       alert(error.message);
-    } finally {
       setLoading(false);
     }
   };

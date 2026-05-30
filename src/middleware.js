@@ -20,12 +20,17 @@ export function middleware(request) {
 
   // Allow login and register pages without authentication
   if (publicRoutes.includes(pathname)) {
+    if (isLoggedIn && pathname === "/login") {
+      return NextResponse.redirect(new URL("/", request.url));
+    }
     return NextResponse.next();
   }
 
   // Redirect to login if no session cookie
   if (!isLoggedIn) {
-    return NextResponse.redirect(new URL("/login", request.url));
+    const loginUrl = new URL("/login", request.url);
+    loginUrl.searchParams.set("callbackUrl", pathname);
+    return NextResponse.redirect(loginUrl);
   }
 
   // Allow access
