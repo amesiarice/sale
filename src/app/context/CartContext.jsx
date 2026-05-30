@@ -8,9 +8,13 @@ import {
 } from "react";
 
 const CartContext = createContext();
+import CartToast from "@/components/CartToast";
+
 
 export function CartProvider({ children }) {
   const [cartItems, setCartItems] = useState([]);
+  const [cartPulse, setCartPulse] = useState(false);
+  const [toast, setToast] = useState(null);
 
   // Load cart from localStorage
   useEffect(() => {
@@ -55,7 +59,24 @@ export function CartProvider({ children }) {
         },
       ];
     });
+    setToast({ id: product.id, name: product.name });
+  setCartPulse(true);
   };
+
+  // Auto-hide toast
+  useEffect(() => {
+    if (!toast) return;
+    const t = setTimeout(() => setToast(null), 3000);
+    return () => clearTimeout(t);
+  }, [toast]);
+
+  // End cart pulse after 2s
+  useEffect(() => {
+    if (!cartPulse) return;
+    const t = setTimeout(() => setCartPulse(false), 2000);
+    return () => clearTimeout(t);
+  }, [cartPulse]);
+  
 
   // Remove Item
   const removeFromCart = (id) => {
@@ -106,9 +127,13 @@ export function CartProvider({ children }) {
         increaseQty,
         decreaseQty,
         clearCart,
+        toast,
+        dismissToast: () => setToast(null),
+        cartPulse,
       }}
     >
       {children}
+      <CartToast toast={toast} onDismiss={() => setToast(null)} />
     </CartContext.Provider>
   );
 }

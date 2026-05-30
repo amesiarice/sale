@@ -2,7 +2,17 @@ import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { CartProvider } from "@/app/context/CartContext";
+import { Playfair_Display, DM_Sans } from "next/font/google";
 
+const playfair = Playfair_Display({
+  subsets: ["latin"],
+  variable: "--font-display",
+});
+
+const dmSans = DM_Sans({
+  subsets: ["latin"],
+  variable: "--font-body",
+}); 
 
 export const metadata = {
   title: "Saifco Basmati Rice — SKU Catalogue",
@@ -17,8 +27,8 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
-      <body className="min-h-screen flex flex-col">
+    <html lang="en" className={`${playfair.variable} ${dmSans.variable}`}>
+       <body className="min-h-screen flex flex-col font-[family-name:var(--font-body)]">
         <CartProvider>
           <Navbar />
         <div className="flex flex-col flex-1">{children}</div>

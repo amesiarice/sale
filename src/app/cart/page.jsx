@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { motion } from "motion/react";
 
 import {
   ShoppingBag,
@@ -398,7 +399,7 @@ export default function CartPage() {
   </p>
 
   {cartItems.map((item) => (
-    <div
+    <motion.div
       key={item.id}
       className="flex items-start justify-between gap-3 text-sm"
     >
@@ -415,7 +416,7 @@ export default function CartPage() {
       <span className="font-medium shrink-0">
         ₹{Number(item.dealerPrice || 0)}
       </span>
-    </div>
+    </motion.div>
   ))}
 </div>
                 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCart } from "@/app/context/CartContext";
+import { useState } from "react";
 
 export default function ProductDetail({
   skuLine,
@@ -10,7 +11,7 @@ export default function ProductDetail({
 }) 
 
 {
-
+  const [added, setAdded] = useState(false);
   const { addToCart } = useCart();
   // Skeleton Loader
   if (loading || !variant) {
@@ -72,6 +73,28 @@ export default function ProductDetail({
     );
   }
 
+  const handleAdd = () => {
+    addToCart({
+      id: variant.id,
+      name: variant.name,
+      skuId: variant.skuId,
+      skuCode: variant.skuCode,
+      grade: variant.grade,
+      packSizes: variant.packSizes,
+      mrp: variant.mrp,
+      dealerPrice: variant.dealerPrice,
+      moq: variant.moq,
+      offer: variant.offer,
+      inStock: variant.inStock,
+      grainLength: variant.grainLength,
+      moisture: variant.moisture,
+      primaryUse: variant.primaryUse,
+      description: variant.description,
+      image: variant.image || "",
+    })
+    setAdded(true);
+    setTimeout(() => setAdded(false), 1500);
+  };
   const specs = [
     { label: "USP", value: variant.grainLength },
     { label: "Packing Type", value: variant.moisture },
@@ -83,6 +106,7 @@ export default function ProductDetail({
     { label: "Offer", value: variant.offer || "N/A" },
     
   ];
+  
 
   return (
     <div
@@ -139,26 +163,8 @@ export default function ProductDetail({
         </div>
 
         <button
-  onClick={() =>
-    addToCart({
-  id: variant.id,
-  name: variant.name,
-  skuId: variant.skuId,
-  skuCode: variant.skuCode,
-  grade: variant.grade,
-  packSizes: variant.packSizes,
-  mrp: variant.mrp,
-  dealerPrice: variant.dealerPrice,
-  moq: variant.moq,
-  offer: variant.offer,
-  inStock: variant.inStock,
-  grainLength: variant.grainLength,
-  moisture: variant.moisture,
-  primaryUse: variant.primaryUse,
-  description: variant.description,
-  image: variant.image || "",
-})
-  }
+        
+  onClick={handleAdd}
   className="
     w-full
     sm:w-auto

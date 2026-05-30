@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { getSkuLines } from "@/data/skus";
 import Sidebar from "@/components/Sidebar";
 import ProductDetail from "@/components/ProductDetail";
-// import ContactSection from "@/components/ContactSection";
+import { AnimatePresence, motion } from "motion/react"
 
 export default function ProductsPageClient() {
   const [skuLines, setSkuLines] = useState([]);
@@ -220,6 +220,14 @@ export default function ProductsPageClient() {
               w-full
             "
           >
+            <AnimatePresence mode="wait">
+  <motion.div
+    key={`${activeSkuId}-${activeVariantId}`}
+    initial={{ opacity: 0, y: 8 }}
+    animate={{ opacity: 1, y: 0 }}
+    exit={{ opacity: 0, y: -8 }}
+    transition={{ duration: 0.2 }}
+  >
             <ProductDetail
               key={activeVariantId}
               skuLine={activeSku}
@@ -229,6 +237,9 @@ export default function ProductsPageClient() {
               }
               loading={variantLoading}
             />
+
+</motion.div>
+</AnimatePresence>
           </div>
         </main>
       </div>
