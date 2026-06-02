@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "motion/react";
+import { getSkuLines } from "@/data/skus";
+import Select from "react-select";
 
 import {
   ShoppingBag,
@@ -22,12 +24,16 @@ export default function CartPage() {
     increaseQty,
     decreaseQty,
     clearCart,
+    addToCart,
   } = useCart();
 
   // inside CartPage:
   const [retailerId, setRetailerId] = useState("");
 
   const [loading, setLoading] = useState(false);
+
+  const [products, setProducts] = useState([]);
+  const [selectedSku, setSelectedSku] = useState("");
 
   // Pricing calculations
   const subtotal = cartItems.reduce(
@@ -38,9 +44,38 @@ export default function CartPage() {
     0
   );
 
+  useEffect(() => {
+    async function loadProducts() {
+      const skuLines = await getSkuLines();
+  
+      // Flatten variants into single array
+      const allProducts = skuLines.flatMap(
+        (line) => line.variants || []
+      );
+  
+      setProducts(allProducts);
+    }
+  
+    loadProducts();
+  }, []);
+
+  const handleSkuSelect = (id) => {
+    setSelectedSku(id);
+  
+    const product = products.find(
+      (p) => p.id === id
+    );
+  
+    if (!product) return;
+  
+    addToCart({
+      ...product,
+    });
+  };
+
   const discount = subtotal > 5000 ? subtotal * 0.1 : 0;
 
-  const shipping = subtotal > 3000 ? 0 : 150;
+  const shipping = subtotal > 3000 ? 0 : 0;
 
   const total = subtotal - discount + shipping;
 
@@ -179,6 +214,36 @@ export default function CartPage() {
             </div>
           </div>
         </div>
+
+        <div className="mb-6">
+  <label className="block text-sm font-medium mb-2">
+    Select Product
+  </label>
+
+  <Select
+  options={products.map((product) => ({
+    value: product.id,
+    label: `${product.name} (${product.skuCode})`,
+  }))}
+  value={
+    products.find((p) => p.id === selectedSku)
+      ? {
+          value: selectedSku,
+          label: `${
+            products.find((p) => p.id === selectedSku).name
+          } (${
+            products.find((p) => p.id === selectedSku).skuCode
+          })`,
+        }
+      : null
+  }
+  onChange={(option) =>
+    handleSkuSelect(option.value)
+  }
+  placeholder="Search Product..."
+  isSearchable
+/>
+</div>
 
         {!cartItems.length ? (
           <div
@@ -392,34 +457,34 @@ export default function CartPage() {
                   />
                 </div>
 
-{/* SKU breakdown */}
-<div className="mb-6 space-y-3">
-  <p className="text-sm font-medium text-gray-700">
-    Items
-  </p>
+                {/* SKU breakdown */}
+                <div className="mb-6 space-y-3">
+                  <p className="text-sm font-medium text-gray-700">
+                    Items
+                  </p>
 
-  {cartItems.map((item) => (
-    <motion.div
-      key={item.id}
-      className="flex items-start justify-between gap-3 text-sm"
-    >
-      <div className="min-w-0">
-        <p className="font-medium text-gray-800 truncate">
-          {item.name}
-        </p>
-        <p className="text-xs text-gray-500">
-          {item.skuCode || item.skuId || "—"}
-          {item.quantity > 1 && ` · Qty ${item.quantity}`}
-        </p>
-      </div>
+                  {cartItems.map((item) => (
+                    <motion.div
+                      key={item.id}
+                      className="flex items-start justify-between gap-3 text-sm"
+                    >
+                      <div className="min-w-0">
+                        <p className="font-medium text-gray-800 truncate">
+                          {item.name}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {item.skuCode || item.skuId || "—"}
+                          {item.quantity > 1 && ` · Qty ${item.quantity}`}
+                        </p>
+                      </div>
 
-      <span className="font-medium shrink-0">
-        ₹{Number(item.dealerPrice || 0)}
-      </span>
-    </motion.div>
-  ))}
-</div>
-                
+                      <span className="font-medium shrink-0">
+                        ₹{Number(item.dealerPrice || 0)}
+                      </span>
+                    </motion.div>
+                  ))}
+                </div>
+
 
                 {/* Pricing */}
                 <div className="space-y-4 text-sm">
